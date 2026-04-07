@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>賽考利克泰雅語 — 簡短對話練習</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0c0a;
+    --surface: #1a1714;
+    --card: #221f1b;
+    --border: #3a3530;
+    --accent: #c8a96e;
+    --accent2: #7eb8a4;
+    --red: #d96b6b;
+    --text: #ede8df;
+    --muted: #7a7168;
+    --played: #2a3d35;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Serif TC', serif;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.4;
+  }
+
+  header {
+    padding: 2.5rem 1.5rem 1.5rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lang-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 0.2rem 0.7rem;
+    margin-bottom: 0.8rem;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: clamp(1.3rem, 5vw, 2rem);
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    margin-top: 0.4rem;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Stats */
+  .stats-bar {
+    max-width: 700px;
+    margin: 1rem auto 0;
+    padding: 0.7rem 1.5rem;
+    display: flex;
+    gap: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .stat strong { color: var(--text); }
+
+  /* Filter */
+  .filter-section {
+    max-width: 700px;
+    margin: 1rem auto 0;
+    padding: 0 1.5rem;
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+  }
+
+  .filter-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: #1f1c17; }
+
+  /* Cards */
+  .cards-section {
+    max-width: 700px;
+    margin: 1.5rem auto 5rem;
+    padding: 0 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .group-header {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    padding: 0.5rem 0 0.2rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.2rem;
+    margin-top: 0.8rem;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.85rem 1rem;
+    transition: border-color 0.2s;
+    opacity: 0;
+    transform: translateY(6px);
+    animation: reveal 0.3s forwards;
+  }
+
+  @keyframes reveal { to { opacity: 1; transform: none; } }
+
+  .card.has-rec { border-color: #3a3530; }
+  .card.played { background: var(--played); }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .card-id {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    min-width: 2.5rem;
+    padding-top: 0.15rem;
+    flex-shrink: 0;
+  }
+
+  .card-text { flex: 1; }
+
+  .card-tayal {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .card-chinese {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 0.1rem;
+  }
+
+  /* Buttons row */
+  .card-btns {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 4px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .btn:active { transform: scale(0.96); }
+
+  .btn-rec { border-color: var(--red); color: var(--red); }
+  .btn-rec:hover, .btn-rec:active { background: rgba(217,107,107,0.1); }
+  .btn-rec.recording {
+    background: var(--red);
+    color: #fff;
+    animation: recpulse 1s infinite;
+  }
+
+  @keyframes recpulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(217,107,107,0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(217,107,107,0); }
+  }
+
+  .btn-play { border-color: var(--accent2); color: var(--accent2); }
+  .btn-play:hover, .btn-play:active { background: rgba(126,184,164,0.1); }
+  .btn-play.playing {
+    background: rgba(126,184,164,0.15);
+    animation: playpulse 1.2s infinite;
+  }
+
+  @keyframes playpulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(126,184,164,0.3); }
+    50% { box-shadow: 0 0 0 5px rgba(126,184,164,0); }
+  }
+
+  .btn-del { border-color: var(--border); color: var(--muted); font-size: 0.65rem; padding: 0.45rem 0.6rem; }
+  .btn-del:hover { border-color: var(--red); color: var(--red); }
+
+  .rec-status {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-left: auto;
+  }
+
+  .rec-status.has { color: var(--accent2); }
+
+  /* Timer */
+  .rec-timer {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--red);
+    min-width: 2.5rem;
+    display: none;
+  }
+
+  /* Waveform */
+  .waveform {
+    display: none;
+    align-items: center;
+    gap: 2px;
+    height: 16px;
+    margin-left: 0.3rem;
+  }
+
+  .btn-play.playing ~ .waveform,
+  .waveform.active { display: flex; }
+
+  .wave-bar {
+    width: 3px;
+    background: var(--accent2);
+    border-radius: 2px;
+    animation: wave 0.8s ease-in-out infinite;
+  }
+
+  .wave-bar:nth-child(1) { animation-delay: 0s; height: 6px; }
+  .wave-bar:nth-child(2) { animation-delay: 0.1s; height: 12px; }
+  .wave-bar:nth-child(3) { animation-delay: 0.2s; height: 8px; }
+  .wave-bar:nth-child(4) { animation-delay: 0.15s; height: 14px; }
+  .wave-bar:nth-child(5) { animation-delay: 0.05s; height: 6px; }
+
+  @keyframes wave {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.3); }
+  }
+
+  /* Permission banner */
+  .perm-banner {
+    max-width: 700px;
+    margin: 1rem auto 0;
+    padding: 0.75rem 1.5rem;
+    background: #1f1a14;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    display: none;
+    text-align: center;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(4rem);
+    background: var(--card);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    padding: 0.6rem 1.4rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    border-radius: 3px;
+    z-index: 1000;
+    transition: transform 0.3s;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    display: none;
+  }
+
+  /* How-to tip */
+  .tip {
+    max-width: 700px;
+    margin: 1rem auto 0;
+    padding: 0.6rem 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .tip-icon { color: var(--accent2); flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="lang-badge">Squliq Tgdaya · 賽考利克泰雅語</div>
+  <h1>簡短對話<span>練習系統</span></h1>
+  <p class="subtitle">直接錄音 · 即時播放 · 跟讀練習</p>
+</header>
+
+<div class="perm-banner" id="permBanner">
+  ⚠ 請允許麥克風權限才能錄音
+</div>
+
+<div class="tip">
+  <span class="tip-icon">💡</span>
+  <span>點「🔴 錄音」開始錄，再按一次停止。錄好後按「▶ 播放」聽。讓別人念、你錄下來也可以。</span>
+</div>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat">已錄音 <strong id="statRec">0</strong> / 50</div>
+  <div class="stat">已練習 <strong id="statPlayed">0</strong></div>
+  <div class="stat">完成率 <strong id="statPct">0%</strong></div>
+</div>
+
+<!-- Filters -->
+<div class="filter-section">
+  <span class="filter-label">篩選：</span>
+  <button class="filter-btn active" data-filter="all">全部</button>
+  <button class="filter-btn" data-filter="rec">已錄音</button>
+  <button class="filter-btn" data-filter="norec">未錄音</button>
+  <button class="filter-btn" data-filter="played">已練習</button>
+</div>
+
+<!-- Cards -->
+<div class="cards-section" id="cardsContainer"></div>
+<div class="empty-state" id="emptyState">沒有符合條件的題目</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DIALOGUES = [
+  {id:"2-1-1", t:"lokah su' ga?", c:"你好嗎？"},
+  {id:"2-1-2", t:"minkahul su' inu' soni'?", c:"你今天從哪裡來？"},
+  {id:"2-1-3", t:"pira' hi' qutux ngasal mamu?", c:"你們家有多少人？"},
+  {id:"2-1-4", t:"baq su' kmayal ke' na Tayal?", c:"你會說族語嗎？"},
+  {id:"2-1-5", t:"kmayal su' ke' na Tayal krryax?", c:"你常常說族語嗎？"},
+  {id:"2-2-1", t:"lokah su' soni' ga?", c:"你今天好嗎？"},
+  {id:"2-2-2", t:"cyux su' maki' inu' misuw qani?", c:"你現在在哪裡？"},
+  {id:"2-2-3", t:"pira' mtsswe' su'?", c:"你有幾個兄弟姊妹？"},
+  {id:"2-2-4", t:"smoya' su' mita' biru'?", c:"你喜歡讀書嗎？"},
+  {id:"2-2-5", t:"pcbaq su' ke' na Tayal babaw nya'?", c:"你將來要教族語嗎？"},
+  {id:"2-3-1", t:"ima' lalu' su'?", c:"你叫甚麼名字？"},
+  {id:"2-3-2", t:"cyux maki' inu' ngasal mamu?", c:"你們家在哪裡？"},
+  {id:"2-3-3", t:"pira' kawas su' la?", c:"你幾歲了？"},
+  {id:"2-3-4", t:"smoya' su' tqbaq ke' Tayal?", c:"你喜歡學族語嗎？"},
+  {id:"2-3-5", t:"kmayal su' ke' na Tayal krryax?", c:"你常常說族語嗎？"},
+  {id:"2-4-1", t:"lokah su' ga?", c:"你好嗎？"},
+  {id:"2-4-2", t:"cyux maki' inu' pqwasan su' biru'?", c:"你的學校在哪裡？"},
+  {id:"2-4-3", t:"pira' rangi' su'?", c:"你有幾個朋友？"},
+  {id:"2-4-4", t:"msqun simu mita' biru' krryax?", c:"你們天天一起讀書嗎？"},
+  {id:"2-4-5", t:"kmal simu ke' na Tayal krryax?", c:"你們常常說族語嗎？"},
+  {id:"2-5-1", t:"ima' lalu' su'?", c:"你叫甚麼名字？"},
+  {id:"2-5-2", t:"musa' su' inu' kira'?", c:"你等一下要去哪裡？"},
+  {id:"2-5-3", t:"pira' teribiy mamu?", c:"你家有幾台電視？"},
+  {id:"2-5-4", t:"smoya' su' mita' teribiy krryax?", c:"你喜歡看電視嗎？"},
+  {id:"2-5-5", t:"pira' tmucing m'abi' su' krryax?", c:"你每天幾點睡覺？"},
+  {id:"2-6-1", t:"lokah su' ga?", c:"你好嗎？"},
+  {id:"2-6-2", t:"minkahul su' inu' soni'?", c:"你今天從哪裡來？"},
+  {id:"2-6-3", t:"pira' hi' ngasal mamu?", c:"你們家有多少人？"},
+  {id:"2-6-4", t:"baq kmal ke' na Tayal yaba' su'?", c:"你爸爸很會說族語嗎？"},
+  {id:"2-6-5", t:"baq pcbaq ke' na Tayal yaba' su'?", c:"你爸爸會教族語嗎？"},
+  {id:"2-7-1", t:"lokah su' soni'?", c:"你今天好嗎？"},
+  {id:"2-7-2", t:"cyux su' maki' inu' misuw qani?", c:"你現在在哪裡？"},
+  {id:"2-7-3", t:"pira' mtsswe' su'?", c:"你有幾個兄弟姊妹？"},
+  {id:"2-7-4", t:"smoya' simu mqwas?", c:"你們都喜歡唱歌嗎？"},
+  {id:"2-7-5", t:"smoya' su' mzyugi' uzi?", c:"你們也喜歡跳舞嗎？"},
+  {id:"2-8-1", t:"ima' lalu' su'?", c:"你叫甚麼名字？"},
+  {id:"2-8-2", t:"cyux maki' inu' yaya' su'?", c:"你媽媽現在在哪裡？"},
+  {id:"2-8-3", t:"pira' kawas nya' la?", c:"她幾歲了？"},
+  {id:"2-8-4", t:"kmal ke' na Tayal krryax yaya' su'?", c:"你媽媽常說族語嗎？"},
+  {id:"2-8-5", t:"kmal ke' na Tayal kwara' qutux ngasal mamu?", c:"你們全家人都說族語嗎？"},
+  {id:"2-9-1", t:"lokah su' ga?", c:"你好嗎？"},
+  {id:"2-9-2", t:"cyux maki' inu' yutas su' ru yaki' su'?", c:"你祖父祖母現在在哪裡？"},
+  {id:"2-9-3", t:"musa' su' mita' yutas su' ru yaki' su' krryax?", c:"你常去探望祖父祖母嗎？"},
+  {id:"2-9-4", t:"baq kmal ke' na Tayal yutas su' ru yaki' su'?", c:"你的祖父祖母很會說族語嗎？"},
+  {id:"2-9-5", t:"kmayal ke' na Tayal kwara' qutux ngasal mamu?", c:"你們全家人都說族語嗎？"},
+  {id:"2-10-1", t:"ima' lalu' su'?", c:"你叫甚麼名字？"},
+  {id:"2-10-2", t:"cyux maki' inu' pqwasan su' biru'?", c:"你的學校在哪裡？"},
+  {id:"2-10-3", t:"pira' rangi' su'?", c:"你有幾個朋友？"},
+  {id:"2-10-4", t:"smoya' su' matas biru'?", c:"你喜歡畫畫嗎？"},
+  {id:"2-10-5", t:"matas su' biru' krryax?", c:"你常常畫畫嗎？"},
+];
+
+// State per card
+const state = {}; // id -> { blob, url, played }
+DIALOGUES.forEach(d => { state[d.id] = { blob: null, url: null, played: false }; });
+
+let activeFilter = 'all';
+let activeRecId = null;
+let mediaRecorder = null;
+let recChunks = [];
+let recTimer = null;
+let recSeconds = 0;
+let currentAudio = null;
+let currentPlayId = null;
+let micPermission = false;
+
+const container = document.getElementById('cardsContainer');
+const emptyState = document.getElementById('emptyState');
+const toast = document.getElementById('toast');
+
+function showToast(msg, ms = 2200) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), ms);
+}
+
+function updateStats() {
+  const rec = DIALOGUES.filter(d => state[d.id].blob).length;
+  const played = DIALOGUES.filter(d => state[d.id].played).length;
+  document.getElementById('statRec').textContent = rec;
+  document.getElementById('statPlayed').textContent = played;
+  document.getElementById('statPct').textContent = Math.round((rec / 50) * 100) + '%';
+}
+
+// ── Recording ──────────────────────────────────────────
+async function ensureMic() {
+  if (micPermission) return true;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(t => t.stop());
+    micPermission = true;
+    return true;
+  } catch (e) {
+    document.getElementById('permBanner').style.display = 'block';
+    showToast('⚠ 請允許麥克風權限', 3500);
+    return false;
+  }
+}
+
+async function startRecording(id) {
+  const ok = await ensureMic();
+  if (!ok) return;
+
+  // Stop any playing audio
+  stopCurrentAudio();
+
+  // If already recording something else, stop it first
+  if (activeRecId && activeRecId !== id) {
+    await stopRecording(activeRecId, false);
+  }
+
+  activeRecId = id;
+  recChunks = [];
+  recSeconds = 0;
+
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  mediaRecorder = new MediaRecorder(stream);
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recChunks.push(e.data); };
+  mediaRecorder.start();
+
+  // Update button UI
+  const btn = document.querySelector(`.btn-rec[data-id="${id}"]`);
+  const timerEl = document.querySelector(`.rec-timer[data-id="${id}"]`);
+  if (btn) { btn.classList.add('recording'); btn.innerHTML = '⏹ 停止'; }
+  if (timerEl) { timerEl.style.display = 'inline'; }
+
+  recTimer = setInterval(() => {
+    recSeconds++;
+    if (timerEl) timerEl.textContent = formatTime(recSeconds);
+  }, 1000);
+}
+
+function stopRecording(id, save = true) {
+  return new Promise(resolve => {
+    if (!mediaRecorder) { resolve(); return; }
+
+    clearInterval(recTimer);
+    recTimer = null;
+
+    mediaRecorder.onstop = () => {
+      mediaRecorder.stream.getTracks().forEach(t => t.stop());
+      if (save && recChunks.length > 0) {
+        const blob = new Blob(recChunks, { type: 'audio/webm' });
+        if (state[id].url) URL.revokeObjectURL(state[id].url);
+        state[id].blob = blob;
+        state[id].url = URL.createObjectURL(blob);
+        showToast(`✓ ${id} 錄音完成`);
+        updateStats();
+        refreshCard(id);
+      }
+      activeRecId = null;
+      resolve();
+    };
+
+    mediaRecorder.stop();
+
+    // Reset button
+    const btn = document.querySelector(`.btn-rec[data-id="${id}"]`);
+    const timerEl = document.querySelector(`.rec-timer[data-id="${id}"]`);
+    if (btn) { btn.classList.remove('recording'); btn.innerHTML = '🔴 錄音'; }
+    if (timerEl) { timerEl.style.display = 'none'; timerEl.textContent = ''; }
+  });
+}
+
+function formatTime(s) {
+  const m = Math.floor(s / 60).toString().padStart(2, '0');
+  const sec = (s % 60).toString().padStart(2, '0');
+  return m + ':' + sec;
+}
+
+// ── Playback ───────────────────────────────────────────
+function stopCurrentAudio() {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+  }
+  if (currentPlayId) {
+    const btn = document.querySelector(`.btn-play[data-id="${currentPlayId}"]`);
+    const wv = document.querySelector(`.waveform[data-id="${currentPlayId}"]`);
+    if (btn) { btn.classList.remove('playing'); btn.innerHTML = '▶ 播放'; }
+    if (wv) wv.classList.remove('active');
+    currentPlayId = null;
+    currentAudio = null;
+  }
+}
+
+function playAudio(id) {
+  if (!state[id].url) return;
+
+  // Toggle off if same
+  if (currentPlayId === id && currentAudio && !currentAudio.paused) {
+    stopCurrentAudio();
+    return;
+  }
+
+  stopCurrentAudio();
+  stopAnyRecording();
+
+  currentAudio = new Audio(state[id].url);
+  currentPlayId = id;
+
+  const btn = document.querySelector(`.btn-play[data-id="${id}"]`);
+  const wv = document.querySelector(`.waveform[data-id="${id}"]`);
+  if (btn) { btn.classList.add('playing'); btn.innerHTML = '⏸ 暫停'; }
+  if (wv) wv.classList.add('active');
+
+  currentAudio.play();
+  currentAudio.onended = () => {
+    if (btn) { btn.classList.remove('playing'); btn.innerHTML = '▶ 播放'; }
+    if (wv) wv.classList.remove('active');
+    state[id].played = true;
+    currentPlayId = null;
+    currentAudio = null;
+    updateStats();
+    const card = document.querySelector(`.card[data-id="${id}"]`);
+    if (card) card.classList.add('played');
+    const statusEl = document.querySelector(`.rec-status[data-id="${id}"]`);
+    if (statusEl) statusEl.textContent = '✓ 已練習';
+  };
+}
+
+function stopAnyRecording() {
+  if (activeRecId) stopRecording(activeRecId, false);
+}
+
+function deleteRecording(id) {
+  if (state[id].url) URL.revokeObjectURL(state[id].url);
+  state[id].blob = null;
+  state[id].url = null;
+  state[id].played = false;
+  updateStats();
+  refreshCard(id);
+  showToast(`已刪除 ${id} 的錄音`);
+}
+
+// ── Render ─────────────────────────────────────────────
+function refreshCard(id) {
+  const existing = document.querySelector(`.card[data-id="${id}"]`);
+  if (!existing) return;
+  const d = DIALOGUES.find(x => x.id === id);
+  const newCard = buildCard(d);
+  newCard.style.animation = 'none';
+  newCard.style.opacity = '1';
+  newCard.style.transform = 'none';
+  existing.replaceWith(newCard);
+}
+
+function buildCard(d) {
+  const s = state[d.id];
+  const hasRec = !!s.blob;
+
+  const card = document.createElement('div');
+  card.className = 'card' + (hasRec ? ' has-rec' : '') + (s.played ? ' played' : '');
+  card.dataset.id = d.id;
+
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="card-id">${d.id}</div>
+      <div class="card-text">
+        <div class="card-tayal">${d.t}</div>
+        <div class="card-chinese">${d.c}</div>
+      </div>
+    </div>
+    <div class="card-btns">
+      <button class="btn btn-rec" data-id="${d.id}">🔴 錄音</button>
+      <span class="rec-timer" data-id="${d.id}" style="display:none"></span>
+      ${hasRec ? `
+        <button class="btn btn-play" data-id="${d.id}">▶ 播放</button>
+        <div class="waveform" data-id="${d.id}">
+          <div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+        </div>
+        <button class="btn btn-del" data-id="${d.id}" title="刪除錄音">✕</button>
+      ` : ''}
+      <span class="rec-status ${hasRec ? 'has' : ''}" data-id="${d.id}">
+        ${s.played ? '✓ 已練習' : hasRec ? '有錄音' : '未錄音'}
+      </span>
+    </div>
+  `;
+
+  // Record button
+  card.querySelector('.btn-rec').addEventListener('click', async () => {
+    if (activeRecId === d.id) {
+      await stopRecording(d.id, true);
+    } else {
+      await startRecording(d.id);
+    }
+  });
+
+  // Play button
+  const playBtn = card.querySelector('.btn-play');
+  if (playBtn) {
+    playBtn.addEventListener('click', () => playAudio(d.id));
+  }
+
+  // Delete button
+  const delBtn = card.querySelector('.btn-del');
+  if (delBtn) {
+    delBtn.addEventListener('click', () => deleteRecording(d.id));
+  }
+
+  return card;
+}
+
+function renderCards() {
+  container.innerHTML = '';
+  const groups = {};
+
+  DIALOGUES.forEach(d => {
+    const key = d.id.split('-').slice(0, 2).join('-');
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(d);
+  });
+
+  let visible = 0;
+
+  Object.entries(groups).forEach(([key, items]) => {
+    const filtered = items.filter(d => {
+      const s = state[d.id];
+      if (activeFilter === 'rec') return !!s.blob;
+      if (activeFilter === 'norec') return !s.blob;
+      if (activeFilter === 'played') return s.played;
+      return true;
+    });
+
+    if (!filtered.length) return;
+    visible += filtered.length;
+
+    const header = document.createElement('div');
+    header.className = 'group-header';
+    header.textContent = `第 ${key.split('-')[1]} 組`;
+    container.appendChild(header);
+
+    filtered.forEach((d, i) => {
+      const card = buildCard(d);
+      card.style.animationDelay = (i * 0.03) + 's';
+      container.appendChild(card);
+    });
+  });
+
+  emptyState.style.display = visible === 0 ? 'block' : 'none';
+  updateStats();
+}
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    renderCards();
+  });
+});
+
+renderCards();
+</script>
+</body>
+</html>
