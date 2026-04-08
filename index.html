@@ -741,7 +741,7 @@ async function playFriendRecording(id) {
     if (btn) { btn.innerHTML = '⏸ 播放中'; }
     currentAudio.play();
     currentAudio.onended = () => {
-      if (btn) { btn.classList.remove('playing'); btn.innerHTML = '👤 朋友錄音'; }
+      if (btn) { btn.classList.remove('playing'); btn.innerHTML = '✅ 已錄音'; }
       currentPlayId = null; currentAudio = null;
       state[id].played = true;
       updateStats();
@@ -808,7 +808,7 @@ function buildCard(d) {
     </div>
     <div class="card-btns">
       <button class="btn btn-question" data-id="${d.id}" title="播放題目">🔊 題目</button>
-      ${hasDrive ? `<button class="btn btn-friend" data-id="${d.id}">👤 朋友錄音</button>` : ''}
+      ${hasDrive ? `<button class="btn btn-friend" data-id="${d.id}">✅ 已錄音</button>` : ''}
       <button class="btn btn-rec" data-id="${d.id}">🔴 錄音</button>
       <span class="rec-timer" data-id="${d.id}" style="display:none"></span>
       ${hasRec ? `
