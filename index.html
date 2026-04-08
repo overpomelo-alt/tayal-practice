@@ -249,7 +249,9 @@
 
   .btn:active { transform: scale(0.96); box-shadow: none; }
 
-  .btn-question { border-color: #b8d4f0; color: #3a6fa8; background: #f2f7fd; }
+  .btn-friend { border-color: #d4b8f0; color: #6a3fa8; background: #faf5ff; }
+  .btn-friend:hover { background: #f3eaff; border-color: #6a3fa8; }
+  .btn-friend.playing { background: #6a3fa8; color: #fff; border-color: #6a3fa8; }
   .btn-question:hover { background: #e6f0fb; border-color: #3a6fa8; }
   .btn-question.playing { background: #3a6fa8; color: #fff; border-color: #3a6fa8; }
   .btn-rec:hover { background: #fff0f0; border-color: var(--red); }
@@ -716,6 +718,40 @@ function stopCurrentAudio() {
   }
 }
 
+async function playFriendRecording(id) {
+  const fileId = state[id].driveId;
+  if (!fileId) return;
+  const btn = document.querySelector(`.btn-friend[data-id="${id}"]`);
+  if (btn) { btn.classList.add('playing'); btn.innerHTML = '⏳ 載入中'; }
+  stopCurrentAudio();
+  try {
+    let objectUrl = questionAudioCache['friend_' + id];
+    if (!objectUrl) {
+      const res = await fetch(`${APPS_SCRIPT_URL}?id=${fileId}`, { mode: 'cors' });
+      const base64 = await res.text();
+      const binary = atob(base64.trim());
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: 'audio/webm' });
+      objectUrl = URL.createObjectURL(blob);
+      questionAudioCache['friend_' + id] = objectUrl;
+    }
+    currentAudio = new Audio(objectUrl);
+    currentPlayId = id;
+    if (btn) { btn.innerHTML = '⏸ 播放中'; }
+    currentAudio.play();
+    currentAudio.onended = () => {
+      if (btn) { btn.classList.remove('playing'); btn.innerHTML = '👤 朋友錄音'; }
+      currentPlayId = null; currentAudio = null;
+      state[id].played = true;
+      updateStats();
+    };
+  } catch(e) {
+    if (btn) { btn.classList.remove('playing'); btn.innerHTML = '👤 朋友錄音'; }
+    showToast('⚠ 載入失敗', 3000);
+  }
+}
+
 function playAudio(id) {
   if (!state[id].url) return;
   if (currentPlayId === id && currentAudio && !currentAudio.paused) { stopCurrentAudio(); return; }
@@ -761,6 +797,7 @@ function buildCard(d) {
   const card = document.createElement('div');
   card.className = 'card' + (hasRec ? ' has-rec' : '') + (s.played ? ' played' : '');
   card.dataset.id = d.id;
+  const hasDrive = !!s.driveId;
   card.innerHTML = `
     <div class="card-top">
       <div class="card-id">${d.id}</div>
@@ -771,6 +808,7 @@ function buildCard(d) {
     </div>
     <div class="card-btns">
       <button class="btn btn-question" data-id="${d.id}" title="播放題目">🔊 題目</button>
+      ${hasDrive ? `<button class="btn btn-friend" data-id="${d.id}">👤 朋友錄音</button>` : ''}
       <button class="btn btn-rec" data-id="${d.id}">🔴 錄音</button>
       <span class="rec-timer" data-id="${d.id}" style="display:none"></span>
       ${hasRec ? `
@@ -783,7 +821,7 @@ function buildCard(d) {
         <button class="btn btn-del" data-id="${d.id}" title="刪除">✕</button>
       ` : ''}
       <span class="rec-status ${hasRec ? 'has' : ''}" data-id="${d.id}">
-        ${s.played ? '✓ 已練習' : hasRec ? '☁ 已存雲端' : '未錄音'}
+        ${s.played ? '✓ 已練習' : hasRec ? '☁ 已存雲端' : hasDrive ? '☁ 有錄音' : '未錄音'}
       </span>
     </div>
   `;
@@ -793,6 +831,8 @@ function buildCard(d) {
   });
   const qBtn = card.querySelector('.btn-question');
   if (qBtn) qBtn.addEventListener('click', () => playQuestion(d.id));
+  const friendBtn = card.querySelector('.btn-friend');
+  if (friendBtn) friendBtn.addEventListener('click', () => playFriendRecording(d.id));
   const playBtn = card.querySelector('.btn-play');
   if (playBtn) playBtn.addEventListener('click', () => playAudio(d.id));
   const delBtn = card.querySelector('.btn-del');
@@ -833,6 +873,27 @@ function renderCards() {
   updateStats();
 }
 
+// 載入時自動抓 Drive 裡已有的錄音
+async function loadExistingRecordings() {
+  try {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=list`);
+    const map = await res.json();
+    let count = 0;
+    Object.entries(map).forEach(([name, fileId]) => {
+      if (state[name]) {
+        state[name].driveId = fileId;
+        count++;
+      }
+    });
+    if (count > 0) {
+      renderCards();
+      showToast(`☁ 已載入 ${count} 題朋友錄音`);
+    }
+  } catch(e) {
+    console.log('載入錄音清單失敗', e);
+  }
+}
+
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -843,6 +904,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 });
 
 renderCards();
+loadExistingRecordings();
 </script>
 </body>
 </html>
